@@ -13,6 +13,7 @@ function App() {
   const [cards, setCards] = useState<number[]>([])
   const [openCards, setOpenCards] = useState<number[]>([])
   const [clearedCards, setClearedCards] = useState<number[]>([])
+  const [isGameOver, setGameOver] = useState<boolean>(false)
   const timeout = useRef(null);
 
   useEffect(() => {
@@ -42,6 +43,12 @@ function App() {
       clearTimeout(timeout);
     };
   }, [openCards]);
+
+  useEffect(() => {
+    if (clearedCards.length === size) {
+      setGameOver(true);
+    }
+  }, [clearedCards])
 
   const generateNumbers = (size: number): number[] => {
     const numbersArray: number[] = [];
@@ -75,7 +82,7 @@ function App() {
 
   const turnCard = (card: number) => {
     const arrayHelper = [...openCards];
-    if (arrayHelper && !arrayHelper.includes(card) && !clearedCards.includes(card)) {
+    if (arrayHelper && !arrayHelper.includes(card) && !clearedCards.includes(card) && openCards.length < 2) {
       arrayHelper.push(card);
     }
     setOpenCards(arrayHelper);
@@ -84,17 +91,36 @@ function App() {
 
   const renderCard = (card: number) => {
     return (
-      <div className={`memory-card ${openCards.includes(card) ? 'active' : ''} ${clearedCards.includes(card) ? 'cleared' : ''}`} onClick={() => turnCard(card)}>{Math.floor(card / 2)}</div>
+      <div className={`memory-card ${openCards.includes(card) ? 'active' : ''} ${clearedCards.includes(card) ? 'cleared' : ''}`} onClick={() => turnCard(card)}>{(openCards.includes(card) || clearedCards.includes(card)) && Math.floor(card / 2)}</div>
+    )
+  }
+
+  const startNewGame = () => {
+    generateMemory(size);
+    setOpenCards([]);
+    setClearedCards([]);
+    setGameOver(false);
+  }
+
+  const renderGameOver = () => {
+    return (
+      <div className='game-over'>
+        <div className='you-win'>You win!</div>
+        <button onClick={() => startNewGame()}>Play again</button>
+      </div>
     )
   }
 
   return (
     <>
+      <div className='game-title'>Memory game</div>
       <div>
         <div className='memory-game-container'>
           {cards.map(card => renderCard(card))}
+          {isGameOver &&
+            renderGameOver()
+          }
         </div>
-        <button onClick={() => generateMemory(size)}>new numbers</button>
       </div>
     </>
   )

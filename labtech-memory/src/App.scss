@@ -1,7 +1,7 @@
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 30px;
   text-align: center;
 }
 
@@ -38,6 +38,7 @@
 
 body {
   font-family: 'Poppins', sans-serif;
+  background-color: rgba(31, 31, 31);
 }
 
 .card {
@@ -48,6 +49,17 @@ body {
   color: #888;
 }
 
+.game-title {
+  font-family: Poppins;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 63px;
+  letter-spacing: 0em;
+  text-align: center;
+  color: white;
+  margin-bottom: 30px;
+}
+
 .memory-game-container {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -56,6 +68,7 @@ body {
   padding: 48px;
   border-radius: 16px;
   background-color: white;
+  position: relative;
 
   .memory-card {
     display: flex;
@@ -63,7 +76,7 @@ body {
     align-items: center;
     height: 184px;
     width: 184px;
-    border: rgba(217, 217, 217, 1);
+    background-color: rgba(217, 217, 217, 1);
     border: 2px solid black;
     color: white;
     font-size: 80px;
@@ -80,6 +93,40 @@ body {
     &.cleared {
       background-color: rgba(112, 255, 152, 1);
       color: black;
+    }
+  }
+
+  .game-over {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 676px;
+    height: 676px;
+    background-color: rgba(112, 255, 152, 1);
+    border: 3px solid black;
+    color: black;
+    border-radius: 16px;
+
+    .you-win {
+      font-family: Poppins;
+      font-size: 42px;
+      font-weight: 700;
+      line-height: 63px;
+      text-align: center;
+      margin-top: 156px;
+    }
+
+    button {
+      padding: 5px 26px;
+      font-size: 18px;
+      line-height: 27px;
+      font-weight: 700;
+      color: white;
+      background-color: black;
+      position: absolute;
+      bottom: 42px;
+      transform: translate(-50%, 0);
     }
   }
 }
