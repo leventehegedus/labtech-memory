@@ -86,11 +86,21 @@ const App = () => {
     setOpenCards([]);
     setClearedCards([]);
     setGameOver(false);
+    setGameStarted(true);
+  };
+
+  const handleSizeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    let numberOfPairs = parseInt(event.target.value, 10);
+    if (numberOfPairs < 1) {
+      numberOfPairs = 1;
+    }
+    setSize(numberOfPairs * 2);
   };
 
   const renderGameOver = () => (
     <div className='game-over'>
       <div className='title'>You win!</div>
+      {renderChangeSizeInput()}
       <button onClick={startNewGame}>Play again</button>
     </div>
   );
@@ -99,9 +109,17 @@ const App = () => {
     <div className='game-instructions'>
       <div className='title'>Game instructions</div>
       <div className='instructions'>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Numquam, obcaecati quo corrupti eaque deserunt consequuntur quisquam sint cum itaque neque natus tenetur perspiciatis consectetur suscipit similique necessitatibus optio sit odio.</div>
-      <button onClick={() => setGameStarted(true)}>Play</button>
+      {renderChangeSizeInput()}
+      <button onClick={startNewGame}>Play</button>
     </div>
   );
+
+  const renderChangeSizeInput = () => (
+    <div className='change-size-container'>
+      <label htmlFor='size-input'>Number of pairs:</label>
+      <input id='size-input' type='number' min='1' max='100' value={size / 2} onChange={handleSizeChange} />
+    </div>
+  )
 
   return (
     <>
@@ -109,7 +127,7 @@ const App = () => {
       <div>
         <div className='memory-game-container'>
           {!isGameStarted && renderGameInstructions()}
-          {cards.map((card) => renderCard(card))}
+          {isGameStarted && cards.map((card) => renderCard(card))}
           {isGameOver && renderGameOver()}
         </div>
       </div>
