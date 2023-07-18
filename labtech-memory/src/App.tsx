@@ -1,54 +1,46 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
-import { useEffect, useState, useRef } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.scss'
+import React, { useEffect, useState, useRef } from 'react';
+import './App.scss';
+import Card from './Card';
 
 const DEFAULT_SIZE = 16;
 
-function App() {
-
-  const [size, setSize] = useState(DEFAULT_SIZE)
-  const [cards, setCards] = useState<number[]>([])
-  const [openCards, setOpenCards] = useState<number[]>([])
-  const [clearedCards, setClearedCards] = useState<number[]>([])
-  const [isGameOver, setGameOver] = useState<boolean>(false)
-  const timeout = useRef(null);
-
-  useEffect(() => {
-    generateMemory(size)
-  }, [])
-
-
-  const evaluate = () => {
-    const [first, second] = openCards;
-    if (Math.floor(first / 2) === Math.floor(second / 2)) {
-      setClearedCards([...clearedCards, first, second]);
-      setOpenCards([]);
-      return;
-    }
-    // This is to flip the cards back after 500ms duration
-    timeout.current = setTimeout(() => {
-      setOpenCards([]);
-    }, 500);
-  };
+const App = () => {
+  const [size, setSize] = useState(DEFAULT_SIZE);
+  const [cards, setCards] = useState<number[]>([]);
+  const [openCards, setOpenCards] = useState<number[]>([]);
+  const [clearedCards, setClearedCards] = useState<number[]>([]);
+  const [isGameStarted, setGameStarted] = useState<boolean>(false);
+  const [isGameOver, setGameOver] = useState<boolean>(false);
+  const timeoutRef = useRef<number | null>(null);
 
   useEffect(() => {
-    let timeout: any = null;
+    generateMemory(size);
+  }, []);
+
+  useEffect(() => {
     if (openCards.length === 2) {
-      timeout = setTimeout(evaluate, 300);
+      const timeout = setTimeout(evaluate, 300);
+      return () => clearTimeout(timeout);
     }
-    return () => {
-      clearTimeout(timeout);
-    };
   }, [openCards]);
 
   useEffect(() => {
     if (clearedCards.length === size) {
       setGameOver(true);
     }
-  }, [clearedCards])
+  }, [clearedCards]);
+
+  const evaluate = () => {
+    const [first, second] = openCards;
+    if (Math.floor(first / 2) !== Math.floor(second / 2)) {
+      timeoutRef.current = window.setTimeout(() => {
+        setOpenCards([]);
+      }, 500);
+      return;
+    }
+    setClearedCards([...clearedCards, first, second]);
+    setOpenCards([]);
+  };
 
   const generateNumbers = (size: number): number[] => {
     const numbersArray: number[] = [];
@@ -56,74 +48,73 @@ function App() {
       numbersArray.push(i);
     }
     return numbersArray;
-  }
+  };
 
   const generateMemory = (size: number): void => {
-
     const numbers = generateNumbers(size);
-    const random = shuffleArray(generateNumbers(size));
-    if (JSON.stringify(random) === JSON.stringify(numbers)) {
-      generateMemory(size);
+    let random = shuffleArray(generateNumbers(size));
+    while (JSON.stringify(random) === JSON.stringify(numbers)) {
+      random = shuffleArray(generateNumbers(size));
     }
     setCards(random);
   };
 
   const shuffleArray = (array: number[]) => {
-    const length = array.length;
-    for (let i = length; i > 0; i--) {
-      const randomIndex = Math.floor(Math.random() * i);
-      const currentIndex = i - 1;
-      const temp = array[currentIndex];
-      array[currentIndex] = array[randomIndex];
-      array[randomIndex] = temp;
+    const newArray = [...array];
+    for (let i = newArray.length - 1; i > 0; i--) {
+      const randomIndex = Math.floor(Math.random() * (i + 1));
+      [newArray[i], newArray[randomIndex]] = [newArray[randomIndex], newArray[i]];
     }
-    return array;
-  }
+    return newArray;
+  };
 
   const turnCard = (card: number) => {
-    const arrayHelper = [...openCards];
-    if (arrayHelper && !arrayHelper.includes(card) && !clearedCards.includes(card) && openCards.length < 2) {
-      arrayHelper.push(card);
+    if (openCards.length >= 2 || clearedCards.includes(card) || isGameOver) {
+      return;
     }
-    setOpenCards(arrayHelper);
-    console.log(arrayHelper)
-  }
+    setOpenCards((prevOpenCards) => [...prevOpenCards, card]);
+  };
 
   const renderCard = (card: number) => {
-    return (
-      <div className={`memory-card ${openCards.includes(card) ? 'active' : ''} ${clearedCards.includes(card) ? 'cleared' : ''}`} onClick={() => turnCard(card)}>{(openCards.includes(card) || clearedCards.includes(card)) && Math.floor(card / 2)}</div>
-    )
-  }
+    const isActive = openCards.includes(card);
+    const isCleared = clearedCards.includes(card);
+    return <Card key={card} card={card} isActive={isActive} isCleared={isCleared} onClick={() => turnCard(card)} />;
+  };
 
   const startNewGame = () => {
     generateMemory(size);
     setOpenCards([]);
     setClearedCards([]);
     setGameOver(false);
-  }
+  };
 
-  const renderGameOver = () => {
-    return (
-      <div className='game-over'>
-        <div className='you-win'>You win!</div>
-        <button onClick={() => startNewGame()}>Play again</button>
-      </div>
-    )
-  }
+  const renderGameOver = () => (
+    <div className='game-over'>
+      <div className='title'>You win!</div>
+      <button onClick={startNewGame}>Play again</button>
+    </div>
+  );
+
+  const renderGameInstructions = () => (
+    <div className='game-instructions'>
+      <div className='title'>Game instructions</div>
+      <div className='instructions'>Lorem ipsum dolor, sit amet consectetur adipisicing elit. Numquam, obcaecati quo corrupti eaque deserunt consequuntur quisquam sint cum itaque neque natus tenetur perspiciatis consectetur suscipit similique necessitatibus optio sit odio.</div>
+      <button onClick={() => setGameStarted(true)}>Play</button>
+    </div>
+  );
 
   return (
     <>
       <div className='game-title'>Memory game</div>
       <div>
         <div className='memory-game-container'>
-          {cards.map(card => renderCard(card))}
-          {isGameOver &&
-            renderGameOver()
-          }
+          {!isGameStarted && renderGameInstructions()}
+          {cards.map((card) => renderCard(card))}
+          {isGameOver && renderGameOver()}
         </div>
       </div>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
